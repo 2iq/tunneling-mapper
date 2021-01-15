@@ -1,0 +1,237 @@
+# Necessary secrets:
+#
+# SLACK_BOT_TOKEN - necessary for sending build status to slack. Starts with `xoxb-`.
+# DOCKERHUB_USERNAME - username of account that pushes docker image to dockerhub
+# DOCKERHUB_TOKEN - token of user that pushed docker image to dockerhub
+# GHCR_(PAT|USER) - necessary to push/pull docker images on ghcr.
+#   The GHCR_(PAT|USER) is only temporary solution.
+#   Once ghcr is on GA the GITHUB_TOKEN should be used instead of GHCR_PAT.
+#
+# This workflow also uses GITHUB_TOKEN secret. Github action workflow
+# automatically creates GITHUB_TOKEN secret. There is no need to do that
+# manually.
+
+name: Push to docker repos
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+'  # matches versions tag like 1.0
+      - docker-[a-zA-Z0-9]+
+
+jobs:
+  prepare:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 1
+
+    steps:
+      - name: Provide constant values
+        id: constant-values
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            core.setOutput('githubChannel', 'github_actions');
+            core.setOutput('dockerhubOrga', 'x2iq');
+
+      - name: Notify slack start
+        id: slack
+        uses: voxmedia/github-action-slack-notify-build@v1.2.0
+        env:
+          SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
+        with:
+          channel: ${{steps.constant-values.outputs.githubChannel}}
+          status: 'STARTING #${{github.run_number}}'
+          color: warning
+
+      - name: Docker labels
+        id: docker-labels
+        uses: crazy-max/ghaction-docker-meta@v1.11.0
+        with:
+          images: ignored  # it's not in use and therefore content is irrelevant
+          label-custom: org.opencontainers.image.vendor=2iQ Research GmbH
+
+      - name: Determinate docker parameter
+        id: docker-context
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            const dockerhubOrga = '${{steps.constant-values.outputs.dockerhubOrga}}';
+
+            const [, , refName] = context.ref.split('/');
+
+            const isRelease = !refName.startsWith('docker-');
+            const tagName = refName.replace(/^docker-/, '');
+
+            core.setOutput('isRelease', isRelease);
+            core.setOutput('tagName', tagName);
+
+            core.setOutput('dockerhubRepo', `${dockerhubOrga}/${context.payload.repository.name}`)
+            core.setOutput('ghcrRepo', `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`)
+
+    outputs:
+      slackMessageId: ${{steps.slack.outputs.message_id}}
+      slackChannel: ${{steps.constant-values.outputs.githubChannel}}  # in general, this should be provided by action itself
+
+      dockerhubRepo: ${{steps.docker-context.outputs.dockerhubRepo}}
+      ghcrRepo: ${{steps.docker-context.outputs.ghcrRepo}}
+      dockerTagName: ${{steps.docker-context.outputs.tagName}}
+      dockerImageLabels: ${{steps.docker-labels.outputs.labels}}
+
+      buildxVersion: v0.4.2
+
+  build-amd64-image:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 5
+    needs:
+      - prepare
+
+    steps:
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1.1.1
+        with:
+          version: ${{needs.prepare.outputs.buildxVersion}}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1.8.0
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1.8.0
+        with:
+          registry: ghcr.io
+          # username: ${{github.repository_owner}}  # TODO use once possible
+          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
+          username: ${{secrets.GHCR_USER}}
+          password: ${{secrets.GHCR_PAT}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2.2.2
+        with:
+          push: true
+          labels: ${{needs.prepare.outputs.dockerImageLabels}}
+          tags: |
+            ${{needs.prepare.outputs.dockerhubRepo}}:${{needs.prepare.outputs.dockerTagName}}-amd64
+            ${{needs.prepare.outputs.ghcrRepo}}:${{needs.prepare.outputs.dockerTagName}}-amd64
+
+  build-arm64-image:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 20
+    needs:
+      - prepare
+
+    steps:
+      # TODO graal-native build is very slow on qemu
+      #  use arm instance once available https://github.com/github/roadmap/issues/95
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.0.1
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1.1.1
+        with:
+          version: ${{needs.prepare.outputs.buildxVersion}}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1.8.0
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1.8.0
+        with:
+          registry: ghcr.io
+          # username: ${{github.repository_owner}}  # TODO use once possible
+          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
+          username: ${{secrets.GHCR_USER}}
+          password: ${{secrets.GHCR_PAT}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2.2.2
+        with:
+          push: true
+          platforms: linux/arm64
+          labels: ${{needs.prepare.outputs.dockerImageLabels}}
+          tags: |
+            ${{needs.prepare.outputs.dockerhubRepo}}:${{needs.prepare.outputs.dockerTagName}}-arm64
+            ${{needs.prepare.outputs.ghcrRepo}}:${{needs.prepare.outputs.dockerTagName}}-arm64
+
+  build-multiplatform-image:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 2
+    needs:
+      - prepare
+      - build-amd64-image
+      - build-arm64-image
+
+    steps:
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1.1.1
+        with:
+          version: ${{needs.prepare.outputs.buildxVersion}}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1.8.0
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1.8.0
+        with:
+          registry: ghcr.io
+          # username: ${{github.repository_owner}}  # TODO use once possible
+          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
+          username: ${{secrets.GHCR_USER}}
+          password: ${{secrets.GHCR_PAT}}
+
+      - name: Create and push docker multi-platform image
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+          DOCKERHUB_REPO: ${{needs.prepare.outputs.dockerhubRepo}}
+          GHCR_REPO: ${{needs.prepare.outputs.ghcrRepo}}
+          DOCKER_TAG_NAME: ${{needs.prepare.outputs.dockerTagName}}
+        run: |
+          docker manifest create $DOCKERHUB_REPO:$DOCKER_TAG_NAME $DOCKERHUB_REPO:$DOCKER_TAG_NAME-amd64 $DOCKERHUB_REPO:$DOCKER_TAG_NAME-arm64
+          docker manifest push $DOCKERHUB_REPO:$DOCKER_TAG_NAME
+          docker manifest create $GHCR_REPO:$DOCKER_TAG_NAME $GHCR_REPO:$DOCKER_TAG_NAME-amd64 $GHCR_REPO:$DOCKER_TAG_NAME-arm64
+          docker manifest push $GHCR_REPO:$DOCKER_TAG_NAME
+
+  send-finished-notification:
+    runs-on: ubuntu-20.04
+    if: always()
+    timeout-minutes: 1
+    needs:
+      - prepare
+      - build-multiplatform-image
+
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v2.1.2
+
+      - name: Notify slack success
+        uses: voxmedia/github-action-slack-notify-build@v1.2.0
+        if: env.WORKFLOW_CONCLUSION == 'success'
+        env:
+          SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
+        with:
+          message_id: ${{needs.prepare.outputs.slackMessageId}}
+          channel: ${{needs.prepare.outputs.slackChannel}}
+          status: 'SUCCESS #${{github.run_number}}'
+          color: good
+
+      - name: Notify slack fail
+        uses: voxmedia/github-action-slack-notify-build@v1.2.0
+        if: env.WORKFLOW_CONCLUSION != 'success'
+        env:
+          SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
+        with:
+          message_id: ${{needs.prepare.outputs.slackMessageId}}
+          channel: ${{needs.prepare.outputs.slackChannel}}
+          status: 'FAILED #${{github.run_number}}'
+          color: danger
