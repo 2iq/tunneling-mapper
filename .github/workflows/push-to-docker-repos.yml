@@ -87,7 +87,6 @@ jobs:
 
     steps:
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v1.1.1
         with:
           version: ${{needs.prepare.outputs.buildxVersion}}
@@ -131,7 +130,6 @@ jobs:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v1.1.1
         with:
           version: ${{needs.prepare.outputs.buildxVersion}}
@@ -171,7 +169,6 @@ jobs:
 
     steps:
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v1.1.1
         with:
           version: ${{needs.prepare.outputs.buildxVersion}}
