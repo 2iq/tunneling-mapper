@@ -1,19 +1,19 @@
 FROM oracle/graalvm-ce:20.2.0-java11 AS builder
 # FROM docker.pkg.github.com/graalvm/container/community:arm-64-ol8-java11-20.3.0 AS builder
 
-ENV MAPPING_PARSER_VERSION 1.0
+ENV mappingParserVersion 1.0
 
 WORKDIR /workdir
 
 RUN \
     gu install native-image && \
-    curl -s -L https://github.com/2iq/tunneling-mapping-parser/archive/${MAPPING_PARSER_VERSION}.tar.gz -o tunneling-mapping-parser.tar.gz && \
+    curl -s -L https://github.com/2iq/tunneling-mapping-parser/archive/${mappingParserVersion}.tar.gz -o tunneling-mapping-parser.tar.gz && \
     tar xzf tunneling-mapping-parser.tar.gz && \
-    cd tunneling-mapping-parser-${MAPPING_PARSER_VERSION} && \
+    cd tunneling-mapping-parser-${mappingParserVersion} && \
     ./mvnw package -B -P native && \
     cp target/tunneling-mapping-parser / && \
     cd .. && \
-    rm -rf tunneling-mapping-parser-${MAPPING_PARSER_VERSION} && \
+    rm -rf tunneling-mapping-parser-${mappingParserVersion} && \
     rm tunneling-mapping-parser.tar.gz && \
     gu remove native-image && \
     rm -rf ~/.m2
