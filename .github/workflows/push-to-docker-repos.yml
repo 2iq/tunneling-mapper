@@ -56,22 +56,15 @@ jobs:
             const isRelease = !refName.startsWith('docker-');
             const tagName = refName.replace(/^docker-/, '');
 
-            core.setOutput('isRelease', isRelease);
-            core.setOutput('tagName', tagName);
             const dockerhubRepo = `${{env.dockerhubOrga}}/${context.payload.repository.name}`;
             const ghcrRepo = `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`;
 
-            core.setOutput('dockerhubRepo', `${{env.dockerhubOrga}}/${context.payload.repository.name}`)
-            core.setOutput('ghcrRepo', `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`)
             core.setOutput('dockerhubImageName', `${dockerhubRepo}:${tagName}`)
             core.setOutput('ghcrImageName', `${ghcrRepo}:${tagName}`)
 
     outputs:
       slackMessageId: ${{steps.slack.outputs.message_id}}
 
-      dockerhubRepo: ${{steps.docker-context.outputs.dockerhubRepo}}
-      ghcrRepo: ${{steps.docker-context.outputs.ghcrRepo}}
-      dockerTagName: ${{steps.docker-context.outputs.tagName}}
       dockerhubImageName: ${{steps.docker-context.outputs.dockerhubImageName}}
       ghcrImageName: ${{steps.docker-context.outputs.ghcrImageName}}
 
