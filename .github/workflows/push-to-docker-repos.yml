@@ -20,6 +20,7 @@ on:
       - docker-[a-zA-Z0-9]+
 
 env:
+  dockerhubOrga: x2iq
   slackNotificationsChannel: github_actions
   SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
   buildxVersion: v0.4.2
@@ -30,13 +31,6 @@ jobs:
     timeout-minutes: 1
 
     steps:
-      - name: Provide constant values
-        id: constant-values
-        uses: actions/github-script@v3.1.0
-        with:
-          script: |
-            core.setOutput('dockerhubOrga', 'x2iq');
-
       - name: Notify slack start
         id: slack
         uses: voxmedia/github-action-slack-notify-build@v1.2.0
@@ -57,8 +51,6 @@ jobs:
         uses: actions/github-script@v3.1.0
         with:
           script: |
-            const dockerhubOrga = '${{steps.constant-values.outputs.dockerhubOrga}}';
-
             const [, , refName] = context.ref.split('/');
 
             const isRelease = !refName.startsWith('docker-');
@@ -67,7 +59,7 @@ jobs:
             core.setOutput('isRelease', isRelease);
             core.setOutput('tagName', tagName);
 
-            core.setOutput('dockerhubRepo', `${dockerhubOrga}/${context.payload.repository.name}`)
+            core.setOutput('dockerhubRepo', `${{env.dockerhubOrga}}/${context.payload.repository.name}`)
             core.setOutput('ghcrRepo', `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`)
 
     outputs:
