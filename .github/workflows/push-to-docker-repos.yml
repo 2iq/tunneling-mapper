@@ -23,7 +23,7 @@ env:
   dockerhubOrga: x2iq
   slackNotificationsChannel: github_actions
   SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
-  buildxVersion: v0.4.2
+  buildxVersion: v0.5.1
 
 jobs:
   prepare:
