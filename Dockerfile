@@ -1,7 +1,7 @@
 FROM oracle/graalvm-ce:20.2.0-java11 AS builder
 # FROM docker.pkg.github.com/graalvm/container/community:arm-64-ol8-java11-20.3.0 AS builder
 
-ENV mappingParserVersion 1.0
+ENV mappingParserVersion 2.0
 
 WORKDIR /workdir
 
