@@ -20,6 +20,7 @@ on:
       - docker-[a-zA-Z0-9]+
 
 env:
+  slackNotificationsChannel: github_actions
   SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
 
 jobs:
@@ -33,14 +34,13 @@ jobs:
         uses: actions/github-script@v3.1.0
         with:
           script: |
-            core.setOutput('githubChannel', 'github_actions');
             core.setOutput('dockerhubOrga', 'x2iq');
 
       - name: Notify slack start
         id: slack
         uses: voxmedia/github-action-slack-notify-build@v1.2.0
         with:
-          channel: ${{steps.constant-values.outputs.githubChannel}}
+          channel: ${{env.slackNotificationsChannel}}
           status: 'running #${{github.run_number}}'
           color: warning
 
@@ -71,7 +71,6 @@ jobs:
 
     outputs:
       slackMessageId: ${{steps.slack.outputs.message_id}}
-      slackChannel: ${{steps.constant-values.outputs.githubChannel}}  # in general, this should be provided by action itself
 
       dockerhubRepo: ${{steps.docker-context.outputs.dockerhubRepo}}
       ghcrRepo: ${{steps.docker-context.outputs.ghcrRepo}}
@@ -217,7 +216,7 @@ jobs:
         if: env.WORKFLOW_CONCLUSION == 'success'
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
-          channel: ${{needs.prepare.outputs.slackChannel}}
+          channel: ${{env.slackNotificationsChannel}}
           status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
           color: good
 
@@ -226,6 +225,6 @@ jobs:
         if: env.WORKFLOW_CONCLUSION != 'success'
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
-          channel: ${{needs.prepare.outputs.slackChannel}}
+          channel: ${{env.slackNotificationsChannel}}
           status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
           color: danger
