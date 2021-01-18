@@ -40,7 +40,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
         with:
           channel: ${{steps.constant-values.outputs.githubChannel}}
-          status: 'STARTING #${{github.run_number}}'
+          status: 'running #${{github.run_number}}'
           color: warning
 
       - name: Docker labels
@@ -219,7 +219,7 @@ jobs:
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
           channel: ${{needs.prepare.outputs.slackChannel}}
-          status: 'SUCCESS #${{github.run_number}}'
+          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
           color: good
 
       - name: Notify slack fail
@@ -230,5 +230,5 @@ jobs:
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
           channel: ${{needs.prepare.outputs.slackChannel}}
-          status: 'FAILED #${{github.run_number}}'
+          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
           color: danger
