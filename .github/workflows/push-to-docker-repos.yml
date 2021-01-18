@@ -58,9 +58,13 @@ jobs:
 
             core.setOutput('isRelease', isRelease);
             core.setOutput('tagName', tagName);
+            const dockerhubRepo = `${{env.dockerhubOrga}}/${context.payload.repository.name}`;
+            const ghcrRepo = `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`;
 
             core.setOutput('dockerhubRepo', `${{env.dockerhubOrga}}/${context.payload.repository.name}`)
             core.setOutput('ghcrRepo', `ghcr.io/${{github.repository_owner}}/${context.payload.repository.name}`)
+            core.setOutput('dockerhubImageName', `${dockerhubRepo}:${tagName}`)
+            core.setOutput('ghcrImageName', `${ghcrRepo}:${tagName}`)
 
     outputs:
       slackMessageId: ${{steps.slack.outputs.message_id}}
@@ -68,8 +72,10 @@ jobs:
       dockerhubRepo: ${{steps.docker-context.outputs.dockerhubRepo}}
       ghcrRepo: ${{steps.docker-context.outputs.ghcrRepo}}
       dockerTagName: ${{steps.docker-context.outputs.tagName}}
-      dockerImageLabels: ${{steps.docker-labels.outputs.labels}}
+      dockerhubImageName: ${{steps.docker-context.outputs.dockerhubImageName}}
+      ghcrImageName: ${{steps.docker-context.outputs.ghcrImageName}}
 
+      dockerImageLabels: ${{steps.docker-labels.outputs.labels}}
 
   build-amd64-image:
     runs-on: ubuntu-20.04
@@ -104,8 +110,8 @@ jobs:
           push: true
           labels: ${{needs.prepare.outputs.dockerImageLabels}}
           tags: |
-            ${{needs.prepare.outputs.dockerhubRepo}}:${{needs.prepare.outputs.dockerTagName}}-amd64
-            ${{needs.prepare.outputs.ghcrRepo}}:${{needs.prepare.outputs.dockerTagName}}-amd64
+            ${{needs.prepare.outputs.dockerhubImageName}}-amd64
+            ${{needs.prepare.outputs.ghcrImageName}}-amd64
 
   build-arm64-image:
     runs-on: ubuntu-20.04
@@ -148,8 +154,8 @@ jobs:
           platforms: linux/arm64
           labels: ${{needs.prepare.outputs.dockerImageLabels}}
           tags: |
-            ${{needs.prepare.outputs.dockerhubRepo}}:${{needs.prepare.outputs.dockerTagName}}-arm64
-            ${{needs.prepare.outputs.ghcrRepo}}:${{needs.prepare.outputs.dockerTagName}}-arm64
+            ${{needs.prepare.outputs.dockerhubImageName}}-arm64
+            ${{needs.prepare.outputs.ghcrImageName}}-arm64
 
   build-multiplatform-image:
     runs-on: ubuntu-20.04
@@ -183,14 +189,13 @@ jobs:
       - name: Create and push docker multi-platform image
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
-          DOCKERHUB_REPO: ${{needs.prepare.outputs.dockerhubRepo}}
-          GHCR_REPO: ${{needs.prepare.outputs.ghcrRepo}}
-          DOCKER_TAG_NAME: ${{needs.prepare.outputs.dockerTagName}}
+          dockerhubImageName: ${{needs.prepare.outputs.dockerhubImageName}}
+          ghcrImageName: ${{needs.prepare.outputs.ghcrImageName}}
         run: |
-          docker manifest create $DOCKERHUB_REPO:$DOCKER_TAG_NAME $DOCKERHUB_REPO:$DOCKER_TAG_NAME-amd64 $DOCKERHUB_REPO:$DOCKER_TAG_NAME-arm64
-          docker manifest push $DOCKERHUB_REPO:$DOCKER_TAG_NAME
-          docker manifest create $GHCR_REPO:$DOCKER_TAG_NAME $GHCR_REPO:$DOCKER_TAG_NAME-amd64 $GHCR_REPO:$DOCKER_TAG_NAME-arm64
-          docker manifest push $GHCR_REPO:$DOCKER_TAG_NAME
+          docker manifest create ${dockerhubImageName} ${dockerhubImageName}-amd64 ${dockerhubImageName}-arm64
+          docker manifest push ${dockerhubImageName}
+          docker manifest create ${ghcrImageName} ${ghcrImageName}-amd64 ${ghcrImageName}-arm64
+          docker manifest push ${ghcrImageName}
 
   send-finished-notification:
     runs-on: ubuntu-20.04
