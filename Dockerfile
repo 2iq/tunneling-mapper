@@ -1,6 +1,6 @@
 FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-21.0.0 as builder
 
-ENV mappingParserVersion 2.0
+ENV mappingParserVersion 2.1
 
 WORKDIR /workdir
 
