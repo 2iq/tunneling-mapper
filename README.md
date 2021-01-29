@@ -25,7 +25,7 @@ mappings:
 ```
 
 All fields are required.
-You can find more details about the format in [2iq/tunneling-mapping-parser/README.md](https://github.com/2iq/tunneling-mapping-parser/blob/main/README.md).
+You can find more details about the format in [2iq/tunneling-mapping-parser/README.md#mapping-file](https://github.com/2iq/tunneling-mapping-parser/blob/main/README.md#mapping-file).
 This file needs to be present in `/workdir/mapping.yml` inside of a container.
 You can directly run a container by mounting a mapping file or create an own image.
 
