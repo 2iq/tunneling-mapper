@@ -17,7 +17,7 @@ RUN \
     gu remove native-image && \
     rm -rf ~/.m2
 
-FROM alpine:3.13.1
+FROM alpine:3.13.2
 
 RUN apk add --no-cache iptables=1.8.6-r0 libcap=2.46-r0
 
