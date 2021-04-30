@@ -199,7 +199,7 @@ jobs:
       - build-multiplatform-image
 
     steps:
-      - uses: technote-space/workflow-conclusion-action@v2.1.2
+      - uses: technote-space/workflow-conclusion-action@v2.1.6
 
       - name: Notify slack success
         uses: voxmedia/github-action-slack-notify-build@v1.2.0
