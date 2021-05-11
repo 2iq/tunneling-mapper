@@ -41,7 +41,7 @@ jobs:
 
       - name: Docker labels
         id: docker-labels
-        uses: crazy-max/ghaction-docker-meta@v1.11.0
+        uses: crazy-max/ghaction-docker-meta@v3
         with:
           images: ignored  # It's required but not in use. Therefore the content is irrelevant.
           label-custom: org.opencontainers.image.vendor=2iQ Research GmbH
