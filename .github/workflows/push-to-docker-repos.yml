@@ -3,9 +3,6 @@
 # SLACK_BOT_TOKEN - necessary for sending build status to slack. Starts with `xoxb-`.
 # DOCKERHUB_USERNAME - username of account that pushes docker image to dockerhub
 # DOCKERHUB_TOKEN - token of user that pushed docker image to dockerhub
-# GHCR_(PAT|USER) - necessary to push/pull docker images on ghcr.
-#   The GHCR_(PAT|USER) is only temporary solution.
-#   Once ghcr is on GA the GITHUB_TOKEN should be used instead of GHCR_PAT.
 #
 # This workflow also uses GITHUB_TOKEN secret. Github action workflow
 # automatically creates GITHUB_TOKEN secret. There is no need to do that
@@ -92,10 +89,8 @@ jobs:
         uses: docker/login-action@v1.9.0
         with:
           registry: ghcr.io
-          # username: ${{github.repository_owner}}  # TODO use once possible
-          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
-          username: ${{secrets.GHCR_USER}}
-          password: ${{secrets.GHCR_PAT}}
+          username: ${{github.repository_owner}}
+          password: ${{secrets.GITHUB_TOKEN}}
 
       - name: Build and push
         uses: docker/build-push-action@v2.2.2
@@ -135,10 +130,8 @@ jobs:
         uses: docker/login-action@v1.9.0
         with:
           registry: ghcr.io
-          # username: ${{github.repository_owner}}  # TODO use once possible
-          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
-          username: ${{secrets.GHCR_USER}}
-          password: ${{secrets.GHCR_PAT}}
+          username: ${{github.repository_owner}}
+          password: ${{secrets.GITHUB_TOKEN}}
 
       - name: Build and push
         uses: docker/build-push-action@v2.2.2
@@ -174,10 +167,8 @@ jobs:
         uses: docker/login-action@v1.9.0
         with:
           registry: ghcr.io
-          # username: ${{github.repository_owner}}  # TODO use once possible
-          # password: ${{secrets.GITHUB_TOKEN}}  # TODO use once possible
-          username: ${{secrets.GHCR_USER}}
-          password: ${{secrets.GHCR_PAT}}
+          username: ${{github.repository_owner}}
+          password: ${{secrets.GITHUB_TOKEN}}
 
       - name: Create and push docker multi-platform image
         env:
