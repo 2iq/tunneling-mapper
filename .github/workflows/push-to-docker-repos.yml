@@ -38,10 +38,10 @@ jobs:
 
       - name: Docker labels
         id: docker-labels
-        uses: docker/metadata-action@v1.11.0
+        uses: docker/metadata-action@v3.1.0
         with:
           images: ignored  # It's required but not in use. Therefore the content is irrelevant.
-          label-custom: org.opencontainers.image.vendor=2iQ Research GmbH
+          labels: org.opencontainers.image.vendor=2iQ Research GmbH
 
       - name: Determinate docker parameter
         id: docker-context
