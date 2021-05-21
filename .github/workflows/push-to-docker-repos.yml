@@ -207,5 +207,5 @@ jobs:
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
           channel: ${{env.slackNotificationsChannel}}
-          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
+          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}} <!channel> please take a note of red build'
           color: danger
