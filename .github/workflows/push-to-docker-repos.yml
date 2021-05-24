@@ -38,7 +38,7 @@ jobs:
 
       - name: Docker labels
         id: docker-labels
-        uses: docker/metadata-action@v3.1.0
+        uses: docker/metadata-action@v3.2.0
         with:
           images: ignored  # It's required but not in use. Therefore the content is irrelevant.
           labels: org.opencontainers.image.vendor=2iQ Research GmbH
