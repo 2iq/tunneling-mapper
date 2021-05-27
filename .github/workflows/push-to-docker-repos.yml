@@ -19,7 +19,6 @@ on:
 env:
   dockerhubOrga: x2iq
   slackNotificationsChannel: github_actions
-  SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
   buildxVersion: v0.5.1
 
 jobs:
@@ -31,6 +30,8 @@ jobs:
       - name: Notify slack start
         id: slack
         uses: voxmedia/github-action-slack-notify-build@v1.5.0
+        env:
+          SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
         with:
           channel: ${{env.slackNotificationsChannel}}
           status: 'running #${{github.run_number}}'
@@ -188,6 +189,9 @@ jobs:
     needs:
       - prepare
       - build-multiplatform-image
+
+    env:
+      SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
 
     steps:
       - uses: technote-space/workflow-conclusion-action@v2.1.6
