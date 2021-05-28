@@ -70,7 +70,7 @@ jobs:
 
   build-amd64-image:
     runs-on: ubuntu-20.04
-    timeout-minutes: 5
+    timeout-minutes: 2
     needs:
       - prepare
 
@@ -104,7 +104,7 @@ jobs:
 
   build-arm64-image:
     runs-on: ubuntu-20.04
-    timeout-minutes: 20
+    timeout-minutes: 2
     needs:
       - prepare
 
