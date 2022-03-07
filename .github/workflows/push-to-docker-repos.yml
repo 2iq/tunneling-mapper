@@ -177,10 +177,10 @@ jobs:
           dockerhubImageName: ${{needs.prepare.outputs.dockerhubImageName}}
           ghcrImageName: ${{needs.prepare.outputs.ghcrImageName}}
         run: |
-          docker manifest create ${dockerhubImageName} ${dockerhubImageName}-amd64 ${dockerhubImageName}-arm64
-          docker manifest push ${dockerhubImageName}
-          docker manifest create ${ghcrImageName} ${ghcrImageName}-amd64 ${ghcrImageName}-arm64
-          docker manifest push ${ghcrImageName}
+          docker manifest create "${dockerhubImageName}" "${dockerhubImageName}-amd64" "${dockerhubImageName}-arm64"
+          docker manifest push "${dockerhubImageName}"
+          docker manifest create "${ghcrImageName}" "${ghcrImageName}-amd64" "${ghcrImageName}-arm64"
+          docker manifest push "${ghcrImageName}"
 
   send-finished-notification:
     runs-on: ubuntu-20.04
