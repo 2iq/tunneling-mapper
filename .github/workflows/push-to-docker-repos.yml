@@ -19,7 +19,7 @@ on:
 env:
   dockerhubOrga: x2iq
   slackNotificationsChannel: github_actions
-  buildxVersion: v0.5.1
+  buildxVersion: v0.7.0
 
 jobs:
   prepare:
