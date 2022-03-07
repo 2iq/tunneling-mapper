@@ -47,7 +47,7 @@ Of course, you should adjust port publishing parameters to your needs.
 You can also create a new image, as shown in the following example:
 
 ```Dockerfile
-FROM x2iq/tunneling-mapper:1.0
+FROM x2iq/tunneling-mapper:1.1
 
 COPY mapping.yml /workdir/mapping.yml
 ```
