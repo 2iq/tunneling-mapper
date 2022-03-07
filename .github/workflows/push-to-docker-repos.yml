@@ -211,5 +211,13 @@ jobs:
         with:
           message_id: ${{needs.prepare.outputs.slackMessageId}}
           channel: ${{env.slackNotificationsChannel}}
-          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}} <!channel> please take a note of red build'
+          status: '${{env.WORKFLOW_CONCLUSION}} #${{github.run_number}}'
           color: danger
+
+      - name: Notify slack failure with @channel call
+        uses: wearerequired/slack-messaging-action@v1.0.1
+        if: env.WORKFLOW_CONCLUSION != 'success'
+        with:
+          bot_token: ${{secrets.SLACK_BOT_TOKEN}}
+          channel: ${{env.slackNotificationsChannel}}
+          payload: '{"text": "<!channel> Take a note of a red build"}'
