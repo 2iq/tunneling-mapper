@@ -1,6 +1,6 @@
 FROM alpine:3.15.0
 
-RUN apk add --no-cache iptables=1.8.6-r0 libcap=2.46-r0
+RUN apk add --no-cache iptables=1.8.7-r1 libcap=2.46-r0
 
 ENV mappingParserVersion 2.2
 RUN \
