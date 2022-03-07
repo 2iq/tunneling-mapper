@@ -46,7 +46,7 @@ jobs:
 
       - name: Determinate docker parameter
         id: docker-context
-        uses: actions/github-script@v4.0.2
+        uses: actions/github-script@v6.0.0
         with:
           script: |
             const [, , refName] = context.ref.split('/');
