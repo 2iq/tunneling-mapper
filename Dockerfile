@@ -1,4 +1,4 @@
-FROM alpine:3.15.0
+FROM alpine:3.16.2
 
 RUN apk add --no-cache iptables=1.8.7-r1 libcap=2.61-r0
 
